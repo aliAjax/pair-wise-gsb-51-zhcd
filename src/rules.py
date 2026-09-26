@@ -25,6 +25,16 @@ class DomainRules:
     def role_can_action(self, role: str, action: str) -> bool:
         return role == "admin" or role in ACTION_ROLES.get(action, set())
 
+    def role_can_transfer(self, role: str) -> bool:
+        return role == "admin"
+
+    def validate_transfer(self, data: Dict[str, Any], from_branch: str) -> Tuple[str, str]:
+        to_branch = text(data, "to_branch")
+        reason = text(data, "reason")
+        if to_branch == from_branch:
+            raise ValidationError("目标分行不能是当前分行")
+        return to_branch, reason
+
     def validate_create(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         p = dict(payload)
         income = number(p, "monthly_income", 1)

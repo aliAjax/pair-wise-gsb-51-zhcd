@@ -26,14 +26,19 @@ python3 app.py --db ./data.db --port 8327
 
 - `GET /health`：健康检查。
 - `GET /`：演示页面。
-- `GET /api/records`：记录列表，可带`state`和`limit`参数。
-- `GET /api/records/{id}`：记录详情。
-- `GET /api/records/{id}/audit`：审计时间线。
-- `GET /api/stats`：状态统计。
-- `POST /api/records`：创建记录，请求体为`{"reference":"...","data":{...}}`。
+- `GET /api/records`：本分行记录列表，可带`state`和`limit`参数。
+- `GET /api/records/{id}`：记录详情（限本分行）。
+- `GET /api/records/{id}/audit`：审计时间线（限本分行）。
+- `GET /api/records/{id}/transfers`：该记录的转办历史（限本分行）。
+- `GET /api/stats`：本分行状态统计。
+- `POST /api/records`：创建记录，请求体为`{"reference":"...","data":{...}}`，记录归入创建人所在分行。
 - `POST /api/records/{id}/actions/{action}`：执行业务动作，请求体为`{"expected_version":1,"data":{...}}`。
+- `POST /api/records/{id}/transfer`：管理员发起转办，请求体为`{"to_org":"...","reason":"..."}`；同一记录仅允许一条待确认转办。
+- `POST /api/transfers/{id}/confirm`：目标分行管理员确认转入；确认后记录归属与待办切换到新分行，并发确认仅先提交的生效，其余返回409。
+- `GET /api/transfers/incoming`：本分行的转入转办单（待办）。
+- `GET /api/transfers/outgoing`：本分行的转出转办单。
 
-除`/health`和`/`外，请求需提供`X-User-Id`、`X-Role`，可选`X-Org`。
+除`/health`和`/`外，请求需提供`X-User-Id`、`X-Role`，可选`X-Org`。`X-Org`决定数据归属：列表、详情、统计和动作只返回本分行的记录，跨分行访问一律返回404；目标分行确认前原分行可继续办理。转办记录永久保留新旧分行、原因和经办人。
 
 ## 测试
 
